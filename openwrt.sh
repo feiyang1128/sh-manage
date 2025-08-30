@@ -75,7 +75,7 @@ install_istore() {
 
     echo -e "${YELLOW}下载并安装 iStore 所需的组件...${NC}"
     for pkg in $taskd $xterm $libtaskd $appstore; do
-        url="https://istore.linkease.com/${pkg}"  
+        url="${ISTORE_URL}${pkg}"  
         filename="$TMP_DIR/$(basename $pkg)"
         echo -e "${YELLOW}下载：$url${NC}"
         wget -O "$filename" "$url" || { echo -e "${RED}下载 $pkg 失败！${NC}"; continue; }
