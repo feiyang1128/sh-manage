@@ -76,7 +76,7 @@ fi
 echo "准备安装 OpenClash，版本：$latest_version"
 latest_version=$(echo "$latest_version" | tr -d 'a-zA-Z')
     # 准备下载链接
-    ipk_url="https://github.com/vernesong/OpenClash/releases/download/${latest_version}/luci-app-openclash_${latest_version}_all.ipk"
+    ipk_url="https://github.com/vernesong/OpenClash/releases/download/v${latest_version}/luci-app-openclash_${latest_version}_all.ipk"
     wget_url="$ipk_url"
     [ -n "$GITHUB_PROXY" ] && wget_url="${GITHUB_PROXY}${ipk_url#https://}"
 
