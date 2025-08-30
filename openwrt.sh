@@ -15,13 +15,11 @@ update_feeds() {
     echo "软件源更新完成。"
 }
 
-# ====== 创建临时文件夹 ======
 create_tmp_dir() {
     mkdir -p "$TMP_DIR"
     echo "使用临时文件夹：$TMP_DIR"
 }
 
-# ====== 清理临时文件夹 ======
 cleanup_tmp_dir() {
     if [ -d "$TMP_DIR" ]; then
         echo "清理临时文件夹：$TMP_DIR"
@@ -29,7 +27,6 @@ cleanup_tmp_dir() {
     fi
 }
 
-# 捕获中断信号和退出，自动清理
 trap cleanup_tmp_dir INT TERM EXIT
 
 # ====== 安装 OpenClash ======
@@ -52,7 +49,6 @@ install_openclash() {
     echo "OpenClash 安装完成。"
 }
 
-# ====== 卸载 OpenClash ======
 uninstall_openclash() {
     echo "正在卸载 OpenClash..."
     opkg remove luci-app-openclash
@@ -64,7 +60,7 @@ install_istore() {
     create_tmp_dir
 
     echo "正在获取 iStore 最新版本信息..."
-    files=$(curl -s "${GITHUB_PROXY}${ISTORE_URL}" | grep -o 'href="[^"]*\.ipk"' | cut -d '"' -f2)
+    files=$(curl -s "${ISTORE_URL}" | grep -o 'href="[^"]*\.ipk"' | cut -d '"' -f2)
 
     taskd=$(echo "$files" | grep 'taskd' | sort -V | tail -n1)
     xterm=$(echo "$files" | grep 'luci-lib-xterm' | sort -V | tail -n1)
@@ -73,12 +69,10 @@ install_istore() {
 
     echo "下载并安装 iStore 所需的 4 个组件..."
     for pkg in $taskd $xterm $libtaskd $appstore; do
-        url="https://github.com${pkg}"
-        wget_url="$url"
-        [ -n "$GITHUB_PROXY" ] && wget_url="${GITHUB_PROXY}${url#https://}"
+        url="https://istore.linkease.com${pkg}"  # 不走代理
         filename="$TMP_DIR/$(basename $pkg)"
-        echo "下载：$pkg"
-        wget -O "$filename" "$wget_url" || { echo "下载 $pkg 失败！"; continue; }
+        echo "下载：$url"
+        wget -O "$filename" "$url" || { echo "下载 $pkg 失败！"; continue; }
         echo "安装 $pkg..."
         opkg install "$filename" || opkg install --force-depends "$filename"
     done
@@ -86,7 +80,6 @@ install_istore() {
     echo "iStore 安装完成。"
 }
 
-# ====== 卸载 iStore ======
 uninstall_istore() {
     echo "正在卸载 iStore..."
     opkg remove luci-app-store luci-lib-taskd luci-lib-xterm taskd
@@ -101,7 +94,6 @@ install_sftp() {
     echo "SFTP 服务安装完成。"
 }
 
-# ====== 卸载 SFTP 服务 ======
 uninstall_sftp() {
     echo "正在卸载 SFTP 服务..."
     opkg remove vsftpd openssh-sftp-server
@@ -135,3 +127,4 @@ while true; do
         *) echo "无效选项，请重新输入。" ;;
     esac
 done
+
