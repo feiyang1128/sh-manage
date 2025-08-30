@@ -24,6 +24,8 @@ get_script() {
     echo -e "${YELLOW}安装/更新脚本中..."
     wget -qO "$LOCAL_SCRIPT_PATH" "$REMOTE_SCRIPT_URL" || { echo -e "${RED}脚本安装/更新失败！"; exit 1; }
     echo -e "${GREEN}脚本安装/更新成功！${NC}"
+    # 重新执行脚本并退出
+    bash "$0" && exit 0
 }
 # 删除脚本文件并清理相关文件
 delete_script() {
