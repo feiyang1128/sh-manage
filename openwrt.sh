@@ -189,8 +189,9 @@ uninstall_sftp() {
     echo -e "${GREEN}SFTP 服务卸载完成。${NC}"
 }
 
-# ====== 菜单 ======
+# ====== 主菜单 ======
 while true; do
+    # 显示菜单
     echo -e "${YELLOW}========================${NC}"
     echo -e "${YELLOW}  OpenWrt 管理脚本${NC}"
     echo -e "${YELLOW}========================${NC}"
@@ -203,7 +204,10 @@ while true; do
     echo "7. 卸载 SFTP 服务"
     echo "0. 退出"
     echo -e "${YELLOW}========================${NC}"
+
+    # 获取用户输入
     read -p "请输入选项 [0-7]: " choice
+
     case $choice in
         1) update_feeds ;;
         2) install_openclash ;;
@@ -215,4 +219,7 @@ while true; do
         0) echo -e "${GREEN}退出脚本${NC}"; exit 0 ;;
         *) echo -e "${RED}无效选项，请重新输入。${NC}" ;;
     esac
+
+    # 执行完操作后，返回显示菜单
+    echo -e "${YELLOW}返回主菜单...${NC}"
 done
