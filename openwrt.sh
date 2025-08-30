@@ -43,7 +43,7 @@ get_latest_github_version() {
 
     while [ -z "$latest_version" ] && [ $wait_time -lt $max_wait ]; do
         # 请求 GitHub API 并抓取标准版本号
-        latest_version=$(curl -s "https://ghproxy.feiyang.gq/https://api.github.com/repos/$repo/releases" \
+        latest_version=$(curl -s "https://targetproxy.feiyang.gq/?target=https://api.github.com/repos/$repo/releases" \
             | grep '"tag_name":' \
             | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' \
             | head -n 1)
@@ -74,7 +74,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "准备安装 OpenClash，版本：$latest_version"
-    
+latest_version=$(echo "$latest_version" | tr -d 'a-zA-Z')
     # 准备下载链接
     ipk_url="https://github.com/vernesong/OpenClash/releases/download/${latest_version}/luci-app-openclash_${latest_version}_all.ipk"
     wget_url="$ipk_url"
