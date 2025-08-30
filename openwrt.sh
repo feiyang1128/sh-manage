@@ -51,8 +51,16 @@ install_openclash() {
     create_tmp_dir
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
     
-    # 获取最新版本号
-    latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
+   # 获取最新版本号并等待，直到成功获取
+    latest_version=""
+    while [ -z "$latest_version" ]; do
+        latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
+        if [ -z "$latest_version" ]; then
+            echo -e "${RED}获取 OpenClash 最新版本失败，等待 10 秒后重试...${NC}"
+            sleep 10  # 每 10 秒重试一次
+        fi
+    done
+
 
     # 如果未获取到版本号，退出安装
     if [ -z "$latest_version" ]; then
