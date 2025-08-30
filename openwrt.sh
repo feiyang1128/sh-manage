@@ -113,7 +113,7 @@ latest_version=$(echo "$latest_version" | tr -d 'a-zA-Z')
 fi
     # 下载并解压 OpenClash 内核
     echo -e "${YELLOW}正在下载 OpenClash 内核文件...${NC}"
-    wget -O "$TMP_DIR/clash-linux-arm64.tar.gz" "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-$architecture.tar.gz"
+    wget -O "$TMP_DIR/clash-linux-arm64.tar.gz" "${GITHUB_PROXY}https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-$architecture.tar.gz"
 
     # 解压并移动到目标目录
     tar -xzvf "$TMP_DIR/clash-linux-$architecture.tar.gz" -C /etc/openclash/core/
