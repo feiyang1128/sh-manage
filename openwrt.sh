@@ -22,7 +22,7 @@ NC='\033[0m'         # 默认颜色
 # ======安装/更新远程脚本并保存到本地 ======
 update_script() {
     echo -e "${YELLOW}安装/更新脚本中...{NC}"
-    wget -qO "$LOCAL_SCRIPT_PATH" "$REMOTE_SCRIPT_URL" || { echo -e "${RED}脚本安装/更新失败！${NC}"; exit 1; }
+    wget -qO "$LOCAL_SCRIPT_PATH" "$REMOTE_SCRIPT_URL" || { echo -e "${RED}脚本安装/更新失败！"; exit 1; }
     echo -e "${GREEN}脚本安装/更新成功！${NC}"
 }
 # 获取系统架构类型并返回 amd64 或 arm64
@@ -205,7 +205,8 @@ show_menu() {
     while true; do
         # ====== 主菜单 ======
         echo -e "${YELLOW}=================================================${NC}"
-        echo -e "${GREEN} 欢迎使用 Feiyang OpenWrt 管理脚本${NC}"
+        echo -e "${GREEN}======欢迎使用 Feiyang OpenWrt 管理脚本=============${NC}"
+        echo -e "${RED}========    脚本管理  bash opt.sh          ==========${NC}"  
         echo -e "${YELLOW}=================================================${NC}"
         echo "1. 更新软件源"
         echo "2. 安装 OpenClash"
@@ -234,8 +235,8 @@ show_menu() {
         esac
 
         # 执行完任务后询问是否退出
-        read -p "任务已完成，是否退出脚本？(y/n): " exit_choice
-        if [[ "$exit_choice" == "y" || "$exit_choice" == "Y" ]]; then
+        read -p "任务已完成，是否继续操作？(任意键继续，N/n 退出脚本): " exit_choice
+        if [[ "$exit_choice" == "N" || "$exit_choice" == "n" ]]; then
             echo -e "${GREEN}退出脚本${NC}"
             exit 0
         fi
