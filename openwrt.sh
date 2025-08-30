@@ -119,7 +119,7 @@ fi
     tar -xzvf "$TMP_DIR/clash-linux-$architecture.tar.gz" -C /etc/openclash/core/
 
     # 重命名文件为 clash_meta
-    mv /etc/openclash/core/clash-linux-$architecture /etc/openclash/core/clash_meta
+    mv /etc/openclash/core/clash /etc/openclash/core/clash_meta
     echo -e "${GREEN}OpenClash 内核安装完成。${NC}"
 }
 
