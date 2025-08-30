@@ -23,6 +23,7 @@ create_tmp_dir() {
     echo -e "${YELLOW}使用临时文件夹：$TMP_DIR${NC}"
 }
 
+# 定义清理函数
 cleanup_tmp_dir() {
     if [ -d "$TMP_DIR" ]; then
         echo -e "${YELLOW}清理临时文件夹：$TMP_DIR${NC}"
@@ -30,8 +31,9 @@ cleanup_tmp_dir() {
     fi
 }
 
-# 捕获 Ctrl+C 和退出，同时清理临时目录
-trap 'cleanup_tmp_dir; echo -e "${RED}脚本已退出${NC}"; exit 1' INT TERM EXIT
+# 捕获退出信号
+trap 'cleanup_tmp_dir; echo -e "${RED}脚本已退出${NC}"' EXIT   # 统一清理和打印
+trap 'exit 1' INT TERM                                         # Ctrl+C 或终止只退出，不重复打印
 
 # ====== 获取 GitHub 最新版本号（使用 API，兼容 BusyBox） ======
 get_latest_github_version() {
