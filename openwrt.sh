@@ -143,17 +143,31 @@ install_istore() {
     appstore=$(echo "$files" | grep 'luci-app-store' | sort -V | tail -n1)
 
     echo -e "${YELLOW}下载并安装 iStore 所需的 4 个组件...${NC}"
+    
+    # 遍历每个包，下载并安装
     for pkg in $taskd $xterm $libtaskd $appstore; do
         url="${ISTORE_URL}${pkg}"
         filename="$TMP_DIR/$(basename $pkg)"
         echo -e "${YELLOW}下载：$url${NC}"
-        wget -O "$filename" "$url" || { echo -e "${RED}下载 $pkg 失败！${NC}"; continue; }
+        
+        # 下载包
+        wget -O "$filename" "$url" || { 
+            echo -e "${RED}下载 $pkg 失败！iStore 安装失败。${NC}"
+            return 1  # 下载失败，直接退出函数
+        }
+        
         echo -e "${YELLOW}安装 $pkg...${NC}"
-        opkg install "$filename" || opkg install --force-depends "$filename"
+        
+        # 安装包
+        opkg install "$filename" || opkg install --force-depends "$filename" || { 
+            echo -e "${RED}安装 $pkg 失败！iStore 安装失败。${NC}"
+            return 1  # 安装失败，直接退出函数
+        }
     done
 
     echo -e "${GREEN}iStore 安装完成。${NC}"
 }
+
 
 uninstall_istore() {
     echo -e "${YELLOW}正在卸载 iStore...${NC}"
