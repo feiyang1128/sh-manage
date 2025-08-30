@@ -45,29 +45,38 @@ get_latest_github_version() {
     echo "$latest_version"
 }
 
+
 # ====== 安装 OpenClash ======
 install_openclash() {
     create_tmp_dir
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
+    
+    # 获取最新版本号
     latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
 
+    # 如果未获取到版本号，退出安装
     if [ -z "$latest_version" ]; then
         echo -e "${RED}获取 OpenClash 最新版本失败！${NC}"
         return 1
     fi
+    
     echo -e "${GREEN}最新版本为：$latest_version${NC}"
 
+    # 准备下载链接
     ipk_url="https://github.com/vernesong/OpenClash/releases/download/${latest_version}/luci-app-openclash_${latest_version}_all.ipk"
     wget_url="$ipk_url"
     [ -n "$GITHUB_PROXY" ] && wget_url="${GITHUB_PROXY}${ipk_url#https://}"
 
+    # 等待并开始下载
     echo -e "${YELLOW}开始下载 OpenClash...${NC}"
     wget -O "$TMP_DIR/luci-app-openclash.ipk" "$wget_url" || { echo -e "${RED}下载失败！${NC}"; return 1; }
 
+    # 安装 OpenClash
     echo -e "${YELLOW}安装 OpenClash...${NC}"
     opkg install "$TMP_DIR/luci-app-openclash.ipk" || opkg install --force-depends "$TMP_DIR/luci-app-openclash.ipk"
     echo -e "${GREEN}OpenClash 安装完成。${NC}"
 }
+
 
 uninstall_openclash() {
     echo -e "${YELLOW}正在卸载 OpenClash...${NC}"
