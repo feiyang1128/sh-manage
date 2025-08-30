@@ -36,8 +36,6 @@ trap 'cleanup_tmp_dir; echo -e "${RED}脚本已退出${NC}"; exit 1' INT TERM EX
 # ====== 获取 GitHub 最新版本号（使用 API，兼容 BusyBox） ======
 get_latest_github_version() {
     repo="$1"
-    echo -e "${YELLOW}正在获取 GitHub 仓库 $repo 的最新版本...${NC}"
-
     latest_version=""
     wait_time=0
     max_wait=30   # 最大等待时间 30 秒
@@ -61,8 +59,6 @@ get_latest_github_version() {
         echo -e "${RED}超过 $max_wait 秒仍未获取到版本号！${NC}"
         return 1
     fi
-
-    echo -e "${GREEN}最新版本为：$latest_version${NC}"
     echo "$latest_version"
 }
 
@@ -79,8 +75,6 @@ if [ $? -ne 0 ]; then
 fi
 echo "准备安装 OpenClash，版本：$latest_version"
     
-    echo -e "${GREEN}最新版本为：$latest_version${NC}"
-
     # 准备下载链接
     ipk_url="https://github.com/vernesong/OpenClash/releases/download/${latest_version}/luci-app-openclash_${latest_version}_all.ipk"
     wget_url="$ipk_url"
