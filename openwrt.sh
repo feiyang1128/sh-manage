@@ -9,7 +9,7 @@ TMP_DIR="/tmp/openwrt_install_tmp"
 # ====== 颜色定义 ======
 GREEN='\033[0;32m'   # 成功
 RED='\033[0;31m'     # 失败
-YELLOW='\033[0;33m'  # 警告/正在进行
+YELLOW='\033[0;33m'  # 警告/进行中
 NC='\033[0m'         # 默认颜色
 
 # ====== 公共函数 ======
@@ -33,13 +33,18 @@ cleanup_tmp_dir() {
 # 捕获 Ctrl+C 和退出，同时清理临时目录
 trap 'cleanup_tmp_dir; echo -e "${RED}脚本已退出${NC}"; exit 1' INT TERM EXIT
 
-# ====== 获取 GitHub 最新版本号 ======
+# ====== 获取 GitHub 最新版本号（兼容 BusyBox） ======
 get_latest_github_version() {
     repo="$1"
-    latest_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | grep -oP '"tag_name":\s*"\K(.*)(?=")')
+
+    # 使用 GitHub API 获取最新 release
+    latest_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | head -n1 | awk -F'"' '{print $4}')
+
+    # 如果 API 获取失败，使用网页重定向 fallback
     if [ -z "$latest_version" ]; then
-        latest_version=$(curl -s "https://github.com/$repo/releases/latest" | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+        latest_version=$(curl -s -I "https://github.com/$repo/releases/latest" | grep -i Location | tail -n1 | awk -F'/' '{print $NF}' | tr -d '\r\n')
     fi
+
     echo "$latest_version"
 }
 
@@ -48,6 +53,7 @@ install_openclash() {
     create_tmp_dir
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
     latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
+
     if [ -z "$latest_version" ]; then
         echo -e "${RED}获取 OpenClash 最新版本失败！${NC}"
         return 1
