@@ -90,6 +90,21 @@ latest_version=$(echo "$latest_version" | tr -d 'a-zA-Z')
     echo -e "${YELLOW}安装 OpenClash...${NC}"
     opkg install "$TMP_DIR/luci-app-openclash.ipk" || opkg install --force-depends "$TMP_DIR/luci-app-openclash.ipk"
     echo -e "${GREEN}OpenClash 安装完成。${NC}"
+    
+    # 下载并解压 OpenClash 内核
+    echo -e "${YELLOW}正在下载 OpenClash 内核文件...${NC}"
+    wget -O "$TMP_DIR/clash-linux-arm64.tar.gz" "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-arm64.tar.gz"
+
+    # 解压并移动到目标目录
+    tar -xzvf "$TMP_DIR/clash-linux-arm64.tar.gz" -C /etc/openclash/core/
+
+    # 重命名文件为 clash_meta
+    mv /etc/openclash/core/clash-linux-arm64 /etc/openclash/core/clash_meta
+
+    # 删除压缩包
+    rm -f "$TMP_DIR/clash-linux-arm64.tar.gz"
+
+    echo -e "${GREEN}OpenClash 内核安装完成。${NC}"
 }
 
 
