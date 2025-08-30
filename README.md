@@ -9,4 +9,4 @@
 在你的 GL-inet MT3000 路由器上，通过以下命令直接安装并执行管理脚本：
 
 ```bash
-bash -c "$(curl -sL https://sh.feiyang.gq/openwrt.sh)"
+sh -c "$(curl -sL https://sh.feiyang.gq/openwrt.sh)"
