@@ -36,7 +36,7 @@ trap 'cleanup_tmp_dir; echo -e "${RED}脚本已退出${NC}"; exit 1' INT TERM EX
 # ====== 获取 GitHub 最新版本号（使用 API，兼容 BusyBox） ======
 get_latest_github_version() {
     repo="$1"
-    latest_version=$(curl -Ls "https://targetproxy.feiyang.gq/?target=https://api.github.com/repos/feiyang1128/xuiApi/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    latest_version=$(curl -Ls "https://targetproxy.feiyang.gq/?target=https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     echo "$latest_version"
 }
 
