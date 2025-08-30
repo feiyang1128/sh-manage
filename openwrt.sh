@@ -20,7 +20,7 @@ NC='\033[0m'         # 默认颜色
 
 # ====== 公共函数 ======
 # ======安装/更新远程脚本并保存到本地 ======
-update_script() {
+get_script() {
     echo -e "${YELLOW}安装/更新脚本中..."
     wget -qO "$LOCAL_SCRIPT_PATH" "$REMOTE_SCRIPT_URL" || { echo -e "${RED}脚本安装/更新失败！"; exit 1; }
     echo -e "${GREEN}脚本安装/更新成功！${NC}"
@@ -246,7 +246,7 @@ show_menu() {
             5) uninstall_istore ;;
             6) install_sftp ;;
             7) uninstall_sftp ;;
-            8) update_script ;;
+            8) get_script ;;
             8) delete_script ;;
             0) echo -e "${GREEN}退出脚本${NC}"; exit 0 ;;
             *) echo -e "${RED}无效选项，请重新输入。${NC}" ;;
@@ -262,7 +262,7 @@ show_menu() {
 }
 # 判断是否第一次运行并自动保存
 if [ ! -f "$LOCAL_SCRIPT_PATH" ]; then
-    update_script
+    get_script
 fi
 # 调用菜单
 show_menu
