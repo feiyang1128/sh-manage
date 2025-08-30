@@ -222,7 +222,7 @@ show_menu() {
         # ====== 主菜单 ======
         echo -e "${YELLOW}=================================================${NC}"
         echo -e "${GREEN}======欢迎使用 Feiyang OpenWrt 管理脚本=============${NC}"
-        echo -e "${RED}========    脚本管理  bash opt.sh          ==========${NC}"  
+        echo -e "${YELLOW}========    脚本管理  bash opt.sh       ==========${NC}"  
         echo -e "${YELLOW}=================================================${NC}"
         echo "1. 更新软件源"
         echo "2. 安装 OpenClash"
