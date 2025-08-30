@@ -77,7 +77,7 @@ cleanup_tmp_dir() {
 }
 
 # 捕获退出信号
-trap 'cleanup_tmp_dir; echo -e "${RED}脚本已退出${NC}"' EXIT   # 统一清理和打印
+trap 'cleanup_tmp_dir; echo -e "\n${RED}脚本已退出${NC}\n"' EXIT   # 统一清理和打印
 trap 'exit 1' INT TERM                                         # Ctrl+C 或终止只退出，不重复打印
 
 # ====== 获取 GitHub 最新版本号（使用 API，兼容 BusyBox） ======
