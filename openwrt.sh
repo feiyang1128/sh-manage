@@ -13,6 +13,21 @@ YELLOW='\033[0;33m'  # 警告/进行中
 NC='\033[0m'         # 默认颜色
 
 # ====== 公共函数 ======
+# 获取系统架构类型并返回 amd64 或 arm64
+get_architecture() {
+    # 获取系统架构
+    arch=$(uname -m)
+
+    # 判断架构类型并返回相应的值
+    if [ "$arch" = "aarch64" ]; then
+        echo "arm64"
+    elif [ "$arch" = "x86_64" ]; then
+        echo "amd64"
+    else
+        echo "未知架构：$arch"
+    fi
+}
+
 update_feeds() {
     echo -e "${YELLOW}正在更新软件源...${NC}"
     opkg update && echo -e "${GREEN}软件源更新完成。${NC}" || echo -e "${RED}更新失败！${NC}"
@@ -90,16 +105,21 @@ latest_version=$(echo "$latest_version" | tr -d 'a-zA-Z')
     echo -e "${YELLOW}安装 OpenClash...${NC}"
     opkg install "$TMP_DIR/luci-app-openclash.ipk" || opkg install --force-depends "$TMP_DIR/luci-app-openclash.ipk"
     echo -e "${GREEN}OpenClash 安装完成。${NC}"
-    
+    architecture=$(get_architecture)
+    echo "当前系统架构：$architecture"
+    if [ $? -ne 0 ]; then
+    echo -e "${RED}无法获取架构信息，退出安装openclash内核。${NC}"
+    exit 1
+fi
     # 下载并解压 OpenClash 内核
     echo -e "${YELLOW}正在下载 OpenClash 内核文件...${NC}"
-    wget -O "$TMP_DIR/clash-linux-arm64.tar.gz" "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-arm64.tar.gz"
+    wget -O "$TMP_DIR/clash-linux-arm64.tar.gz" "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-$architecture.tar.gz"
 
     # 解压并移动到目标目录
-    tar -xzvf "$TMP_DIR/clash-linux-arm64.tar.gz" -C /etc/openclash/core/
+    tar -xzvf "$TMP_DIR/clash-linux-$architecture.tar.gz" -C /etc/openclash/core/
 
     # 重命名文件为 clash_meta
-    mv /etc/openclash/core/clash-linux-arm64 /etc/openclash/core/clash_meta
+    mv /etc/openclash/core/clash-linux-$architecture /etc/openclash/core/clash_meta
     echo -e "${GREEN}OpenClash 内核安装完成。${NC}"
 }
 
