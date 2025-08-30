@@ -43,7 +43,7 @@ get_latest_github_version() {
 
     while [ -z "$latest_version" ] && [ $wait_time -lt $max_wait ]; do
         # 请求 GitHub API 并抓取标准版本号
-        latest_version=$(curl -s "https://targetproxy.feiyang.gq/?target=https://api.github.com/repos/$repo/releases" \
+        latest_version=$(curl -s "https://ghproxy.feiyang.gq/https://api.github.com/repos/$repo/releases" \
             | grep '"tag_name":' \
             | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' \
             | head -n 1)
