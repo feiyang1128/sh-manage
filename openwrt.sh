@@ -21,10 +21,26 @@ NC='\033[0m'         # 默认颜色
 # ====== 公共函数 ======
 # ======安装/更新远程脚本并保存到本地 ======
 update_script() {
-    echo -e "${YELLOW}安装/更新脚本中...{NC}"
+    echo -e "${YELLOW}安装/更新脚本中..."
     wget -qO "$LOCAL_SCRIPT_PATH" "$REMOTE_SCRIPT_URL" || { echo -e "${RED}脚本安装/更新失败！"; exit 1; }
     echo -e "${GREEN}脚本安装/更新成功！${NC}"
 }
+# 删除脚本文件并清理相关文件
+delete_script() {
+    echo -e "${YELLOW}确定要删除脚本文件吗？(y/n)${NC}"
+    read -p "请输入 (y/n): " confirmation
+    if [[ "$confirmation" == "y" || "$confirmation" == "Y" ]]; then
+        echo -e "${YELLOW}正在删除脚本文件...${NC}"
+        if [ -f "$LOCAL_SCRIPT_PATH" ]; then
+            rm -f "$LOCAL_SCRIPT_PATH" && echo -e "${GREEN}脚本文件已删除。${NC}" || echo -e "${RED}脚本删除失败！${NC}"
+        else
+            echo -e "${RED}脚本文件不存在，无法删除！${NC}"
+        fi
+    else
+        echo -e "${GREEN}取消删除操作。${NC}"
+    fi
+}
+
 # 获取系统架构类型并返回 amd64 或 arm64
 get_architecture() {
     # 获取系统架构
@@ -216,6 +232,7 @@ show_menu() {
         echo "6. 安装 SFTP 服务"
         echo "7. 卸载 SFTP 服务"
         echo "8. 更新脚本"
+        echo "9. 删除脚本"
         echo "0. 退出"
         echo -e "${YELLOW}=================================================${NC}"
 
@@ -230,6 +247,7 @@ show_menu() {
             6) install_sftp ;;
             7) uninstall_sftp ;;
             8) update_script ;;
+            8) delete_script ;;
             0) echo -e "${GREEN}退出脚本${NC}"; exit 0 ;;
             *) echo -e "${RED}无效选项，请重新输入。${NC}" ;;
         esac
