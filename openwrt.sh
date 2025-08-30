@@ -100,10 +100,6 @@ latest_version=$(echo "$latest_version" | tr -d 'a-zA-Z')
 
     # 重命名文件为 clash_meta
     mv /etc/openclash/core/clash-linux-arm64 /etc/openclash/core/clash_meta
-
-    # 删除压缩包
-    rm -f "$TMP_DIR/clash-linux-arm64.tar.gz"
-
     echo -e "${GREEN}OpenClash 内核安装完成。${NC}"
 }
 
