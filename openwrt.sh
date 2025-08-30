@@ -37,7 +37,7 @@ trap 'cleanup_tmp_dir; echo -e "${RED}脚本已退出${NC}"; exit 1' INT TERM EX
 get_latest_github_version() {
     repo="$1"
     echo -e "${YELLOW}正在获取 GitHub 仓库 $repo 的最新版本...${NC}"
-    latest_version=$(curl -Ls "https://targetproxy.feiyang.gq/?target=https://api.github.com/repos/$repo/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    latest_version=$(curl -s "https://ghproxy.feiyang.gq/https://api.github.com/repos/$repo/releases" | jq -r '.[0].tag_name')
     echo "$latest_version"
 }
 
