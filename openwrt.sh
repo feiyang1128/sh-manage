@@ -37,11 +37,32 @@ trap 'cleanup_tmp_dir; echo -e "${RED}脚本已退出${NC}"; exit 1' INT TERM EX
 get_latest_github_version() {
     repo="$1"
     echo -e "${YELLOW}正在获取 GitHub 仓库 $repo 的最新版本...${NC}"
-       # 请求 GitHub API 并抓取标准版本号
-    latest_version=$(curl -s "https://targetproxy.feiyang.gq/?target=https://api.github.com/repos/vernesong/OpenClash/releases" \
-        | grep '"tag_name":' \
-        | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' \
-        | head -n 1)
+
+    latest_version=""
+    wait_time=0
+    max_wait=30   # 最大等待时间 30 秒
+    interval=2    # 每次重试间隔 2 秒
+
+    while [ -z "$latest_version" ] && [ $wait_time -lt $max_wait ]; do
+        # 请求 GitHub API 并抓取标准版本号
+        latest_version=$(curl -s "https://targetproxy.feiyang.gq/?target=https://api.github.com/repos/$repo/releases" \
+            | grep '"tag_name":' \
+            | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' \
+            | head -n 1)
+        
+        if [ -z "$latest_version" ]; then
+            echo -e "${YELLOW}暂未获取到版本号，等待 $interval 秒...${NC}"
+            sleep $interval
+            wait_time=$((wait_time + interval))
+        fi
+    done
+
+    if [ -z "$latest_version" ]; then
+        echo -e "${RED}超过 $max_wait 秒仍未获取到版本号！${NC}"
+        return 1
+    fi
+
+    echo -e "${GREEN}最新版本为：$latest_version${NC}"
     echo "$latest_version"
 }
 
@@ -51,22 +72,12 @@ install_openclash() {
     create_tmp_dir
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
     
-   # 获取最新版本号并等待，直到成功获取
-    latest_version=""
-    while [ -z "$latest_version" ]; do
-        latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
-        if [ -z "$latest_version" ]; then
-            echo -e "${RED}获取 OpenClash 最新版本失败，等待 10 秒后重试...${NC}"
-            sleep 10  # 每 10 秒重试一次
-        fi
-    done
-
-
-    # 如果未获取到版本号，退出安装
-    if [ -z "$latest_version" ]; then
-        echo -e "${RED}获取 OpenClash 最新版本失败！${NC}"
-        return 1
-    fi
+latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
+if [ $? -ne 0 ]; then
+    echo "获取版本号失败，安装取消！"
+    exit 1
+fi
+echo "准备安装 OpenClash，版本：$latest_version"
     
     echo -e "${GREEN}最新版本为：$latest_version${NC}"
 
