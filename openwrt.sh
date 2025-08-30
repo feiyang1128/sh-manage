@@ -38,7 +38,7 @@ get_latest_github_version() {
     repo="$1"
     echo -e "${YELLOW}正在获取 GitHub 仓库 $repo 的最新版本...${NC}"
        # 请求 GitHub API 并抓取标准版本号
-    latest_version=$(curl -s "https://ghproxy.feiyang.gq/https://api.github.com/repos/$repo/releases" \
+    latest_version=$(curl -s "https://targetproxy.feiyang.gq/?target=https://api.github.com/repos/vernesong/OpenClash/releases" \
         | grep '"tag_name":' \
         | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' \
         | head -n 1)
