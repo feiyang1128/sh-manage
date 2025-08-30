@@ -19,11 +19,11 @@ YELLOW='\033[0;33m'  # 警告/进行中
 NC='\033[0m'         # 默认颜色
 
 # ====== 公共函数 ======
-# ======更新远程脚本并保存到本地 ======
+# ======安装/更新远程脚本并保存到本地 ======
 update_script() {
-    echo -e "${YELLOW}更新脚本中...：$LOCAL_SCRIPT_PATH${NC}"
-    wget -O "$LOCAL_SCRIPT_PATH" "$REMOTE_SCRIPT_URL" || { echo -e "${RED}脚本更新失败！${NC}"; exit 1; }
-    echo -e "${GREEN}脚本更新成功！${NC}"
+    echo -e "${YELLOW}安装/更新脚本中...{NC}"
+    wget -qO "$LOCAL_SCRIPT_PATH" "$REMOTE_SCRIPT_URL" || { echo -e "${RED}脚本安装/更新失败！${NC}"; exit 1; }
+    echo -e "${GREEN}脚本安装/更新成功！${NC}"
 }
 # 获取系统架构类型并返回 amd64 或 arm64
 get_architecture() {
@@ -241,6 +241,9 @@ show_menu() {
         fi
     done
 }
-
+# 判断是否第一次运行并自动保存
+if [ ! -f "$LOCAL_SCRIPT_PATH" ]; then
+    update_script
+fi
 # 调用菜单
 show_menu
