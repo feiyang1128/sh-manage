@@ -96,6 +96,7 @@ latest_version=$(echo "$latest_version" | tr -d 'a-zA-Z')
 uninstall_openclash() {
     echo -e "${YELLOW}正在卸载 OpenClash...${NC}"
     opkg remove luci-app-openclash
+    rm -rf "/etc/openclash/"
     echo -e "${GREEN}OpenClash 卸载完成。${NC}"
 }
 
