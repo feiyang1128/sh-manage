@@ -1,10 +1,16 @@
 #!/bin/sh
 
 # ====== 可配置区域 ======
+# ====== 脚本配置 ========
+REMOTE_SCRIPT_URL="https://sh.feiyang.gq/openwrt.sh"
+LOCAL_SCRIPT_PATH="/root/opt.sh"
 GITHUB_PROXY="https://ghproxy.feiyang.gq/"
+TMP_DIR="/tmp/openwrt_install_tmp"
+# ====== 软件配置 ======
 OPENCLASH_REPO="vernesong/OpenClash"
 ISTORE_URL="https://istore.linkease.com/repo/all/store/"
-TMP_DIR="/tmp/openwrt_install_tmp"
+
+
 
 # ====== 颜色定义 ======
 GREEN='\033[0;32m'   # 成功
@@ -13,6 +19,12 @@ YELLOW='\033[0;33m'  # 警告/进行中
 NC='\033[0m'         # 默认颜色
 
 # ====== 公共函数 ======
+# ======更新远程脚本并保存到本地 ======
+update_script() {
+    echo -e "${YELLOW}更新脚本中...：$LOCAL_SCRIPT_PATH${NC}"
+    wget -O "$LOCAL_SCRIPT_PATH" "$REMOTE_SCRIPT_URL" || { echo -e "${RED}脚本更新失败！${NC}"; exit 1; }
+    echo -e "${GREEN}脚本更新成功！${NC}"
+}
 # 获取系统架构类型并返回 amd64 或 arm64
 get_architecture() {
     # 获取系统架构
@@ -189,37 +201,46 @@ uninstall_sftp() {
     echo -e "${GREEN}SFTP 服务卸载完成。${NC}"
 }
 
-# ====== 主菜单 ======
-while true; do
-    # 显示菜单
-    echo -e "${YELLOW}========================${NC}"
-    echo -e "${YELLOW}  OpenWrt 管理脚本${NC}"
-    echo -e "${YELLOW}========================${NC}"
-    echo "1. 更新软件源"
-    echo "2. 安装 OpenClash"
-    echo "3. 安装 iStore"
-    echo "4. 卸载 OpenClash"
-    echo "5. 卸载 iStore"
-    echo "6. 安装 SFTP 服务"
-    echo "7. 卸载 SFTP 服务"
-    echo "0. 退出"
-    echo -e "${YELLOW}========================${NC}"
+show_menu() {
+    while true; do
+        # ====== 主菜单 ======
+        echo -e "${YELLOW}=================================================${NC}"
+        echo -e "${GREEN} 欢迎使用 Feiyang OpenWrt 管理脚本${NC}"
+        echo -e "${YELLOW}=================================================${NC}"
+        echo "1. 更新软件源"
+        echo "2. 安装 OpenClash"
+        echo "3. 安装 iStore"
+        echo "4. 卸载 OpenClash"
+        echo "5. 卸载 iStore"
+        echo "6. 安装 SFTP 服务"
+        echo "7. 卸载 SFTP 服务"
+        echo "8. 更新脚本"
+        echo "0. 退出"
+        echo -e "${YELLOW}=================================================${NC}"
 
-    # 获取用户输入
-    read -p "请输入选项 [0-7]: " choice
+        read -p "请输入选项 [0-8]: " choice
 
-    case $choice in
-        1) update_feeds ;;
-        2) install_openclash ;;
-        3) install_istore ;;
-        4) uninstall_openclash ;;
-        5) uninstall_istore ;;
-        6) install_sftp ;;
-        7) uninstall_sftp ;;
-        0) echo -e "${GREEN}退出脚本${NC}"; exit 0 ;;
-        *) echo -e "${RED}无效选项，请重新输入。${NC}" ;;
-    esac
+        case $choice in
+            1) update_feeds ;;
+            2) install_openclash ;;
+            3) install_istore ;;
+            4) uninstall_openclash ;;
+            5) uninstall_istore ;;
+            6) install_sftp ;;
+            7) uninstall_sftp ;;
+            8) update_script ;;
+            0) echo -e "${GREEN}退出脚本${NC}"; exit 0 ;;
+            *) echo -e "${RED}无效选项，请重新输入。${NC}" ;;
+        esac
 
-    # 执行完操作后，返回显示菜单
-    echo -e "${YELLOW}返回主菜单...${NC}"
-done
+        # 执行完任务后询问是否退出
+        read -p "任务已完成，是否退出脚本？(y/n): " exit_choice
+        if [[ "$exit_choice" == "y" || "$exit_choice" == "Y" ]]; then
+            echo -e "${GREEN}退出脚本${NC}"
+            exit 0
+        fi
+    done
+}
+
+# 调用菜单
+show_menu
