@@ -249,7 +249,7 @@ show_menu() {
             6) install_sftp ;;
             7) uninstall_sftp ;;
             8) get_script ;;
-            8) delete_script ;;
+            9) delete_script ;;
             0) echo -e "${GREEN}退出脚本${NC}"; exit 0 ;;
             *) echo -e "${RED}无效选项，请重新输入。${NC}" ;;
         esac
