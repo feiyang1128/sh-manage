@@ -238,7 +238,7 @@ show_menu() {
         echo "0. 退出"
         echo -e "${YELLOW}=================================================${NC}"
 
-        read -p "请输入选项 [0-8]: " choice
+        read -p "请输入选项 [0-9]: " choice
 
         case $choice in
             1) update_feeds ;;
