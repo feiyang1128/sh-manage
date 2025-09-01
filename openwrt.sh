@@ -34,7 +34,7 @@ delete_script() {
     if [[ "$confirmation" == "y" || "$confirmation" == "Y" ]]; then
         echo -e "${YELLOW}正在删除脚本文件...${NC}"
         if [ -f "$LOCAL_SCRIPT_PATH" ]; then
-            rm -f "$LOCAL_SCRIPT_PATH" && echo -e "${GREEN}脚本文件已删除。${NC}" || echo -e "${RED}脚本删除失败！${NC}"
+            rm -f "$LOCAL_SCRIPT_PATH" && echo -e "${GREEN}脚本文件已删除。${NC}"&& exit 0 || echo -e "${RED}脚本删除失败！${NC}"
         else
             echo -e "${RED}脚本文件不存在，无法删除！${NC}"
         fi
