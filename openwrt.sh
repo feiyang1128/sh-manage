@@ -113,6 +113,8 @@ get_latest_github_version() {
 # ====== 安装 OpenClash ======
 install_openclash() {
     create_tmp_dir
+    opkg update
+    opkg install bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
 latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
 if [ $? -ne 0 ]; then
