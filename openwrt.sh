@@ -114,7 +114,6 @@ get_latest_github_version() {
 install_openclash() {
     create_tmp_dir
     opkg update
-    opkg install bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
 latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
 if [ $? -ne 0 ]; then
@@ -161,6 +160,21 @@ uninstall_openclash() {
     rm -rf "/etc/openclash/"
     echo -e "${GREEN}OpenClash 卸载完成。${NC}"
 }
+
+#=======安装 openclash 必备组件====
+install_beforeopenclash() {
+echo -e "${YELLOW}正在安装 openclash 必备组件...${NC}"
+opkg install bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+echo -e "${GREEN}openclash 必备组件 安装完成。${NC}"
+}
+
+#=======卸载 openclash 必备组件====
+uninstall_beforeopenclash() {
+    echo -e "${YELLOW}正在卸载 openclash 必备组件...${NC}"
+    opkg uninstall bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+    echo -e "${GREEN}openclash 必备组件 卸载完成。${NC}"
+}
+
 
 # ====== 安装 iStore ======
 install_istore() {
@@ -234,8 +248,10 @@ show_menu() {
         echo "5. 卸载 iStore"
         echo "6. 安装 SFTP 服务"
         echo "7. 卸载 SFTP 服务"
-        echo "8. 更新脚本"
-        echo "9. 删除脚本"
+        echo "8. 安装 openclash 必备组件"
+        echo "9. 卸载 openclash 必备组件"
+        echo "10. 更新脚本"
+        echo "11. 删除脚本"
         echo "0. 退出"
         echo -e "${YELLOW}=================================================${NC}"
 
@@ -249,8 +265,10 @@ show_menu() {
             5) uninstall_istore ;;
             6) install_sftp ;;
             7) uninstall_sftp ;;
-            8) get_script ;;
-            9) delete_script ;;
+            8) install_beforeopenclash ;;
+            9) uninstall_beforeopenclash ;;
+            10) get_script ;;
+            11) delete_script ;;
             0) echo -e "${GREEN}退出脚本${NC}"; exit 0 ;;
             *) echo -e "${RED}无效选项，请重新输入。${NC}" ;;
         esac
