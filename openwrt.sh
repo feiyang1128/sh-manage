@@ -163,9 +163,9 @@ uninstall_openclash() {
 
 #=======安装 openclash 必备组件====
 install_beforeopenclash() {
-echo -e "${YELLOW}正在安装 openclash 必备组件...${NC}"
-opkg install bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
-echo -e "${GREEN}openclash 必备组件 安装完成。${NC}"
+     echo -e "${YELLOW}正在安装 openclash 必备组件...${NC}"
+     opkg install bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+     echo -e "${GREEN}openclash 必备组件 安装完成。${NC}"
 }
 
 #=======卸载 openclash 必备组件====
