@@ -4,7 +4,7 @@
 # ====== 脚本配置 ========
 REMOTE_SCRIPT_URL="https://sh.feiyang.gq/openwrt.sh"
 LOCAL_SCRIPT_PATH="/root/opt.sh"
-GITHUB_PROXY="https://ghproxy.feiyang.gq/"
+GITHUB_PROXY="https://gh-proxy.com/"
 TMP_DIR="/tmp/install_tmp"
 # ====== 软件配置 ======
 OPENCLASH_REPO="vernesong/OpenClash"
@@ -90,7 +90,7 @@ get_latest_github_version() {
 
     while [ -z "$latest_version" ] && [ $wait_time -lt $max_wait ]; do
         # 请求 GitHub API 并抓取标准版本号
-        latest_version=$(curl -s "https://targetproxy.feiyang.gq/?target=https://api.github.com/repos/$repo/releases" \
+        latest_version=$(curl -s "$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases" \
             | grep '"tag_name":' \
             | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' \
             | head -n 1)
