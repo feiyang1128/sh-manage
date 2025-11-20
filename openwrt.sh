@@ -1,17 +1,15 @@
 #!/bin/sh
 
 # ====== 可配置区域 ======
-# ====== 脚本配置 ========
+# ====== 脚本配置 =======
 REMOTE_SCRIPT_URL="https://sh.feiyang.gq/openwrt.sh"
-GITHUB_TOKEN="${GITHUB_TOKEN}"  # 将 YOUR_PERSONAL_ACCESS_TOKEN 替换为你的 GitHub 令牌
+GITHUB_TOKEN="${GITHUB_TOKEN}"  # 从环境变量读取
 LOCAL_SCRIPT_PATH="/root/opt.sh"
-GITHUB_PROXY="https://gh-proxy.org/"
+GITHUB_PROXY="https://gh-proxy.com/"  # 更换更稳定的代理
 TMP_DIR="/tmp/install_tmp"
 # ====== 软件配置 ======
 OPENCLASH_REPO="vernesong/OpenClash"
 ISTORE_URL="https://istore.linkease.com/repo/all/store/"
-
-
 
 # ====== 颜色定义 ======
 GREEN='\033[0;32m'   # 成功
@@ -28,6 +26,7 @@ get_script() {
     # 重新执行脚本并退出
     bash "$0" && exit 0
 }
+
 # 删除脚本文件并清理相关文件
 delete_script() {
     echo -e "${YELLOW}确定要删除脚本文件吗？(y/n)${NC}"
@@ -46,10 +45,7 @@ delete_script() {
 
 # 获取系统架构类型并返回 amd64 或 arm64
 get_architecture() {
-    # 获取系统架构
     arch=$(uname -m)
-
-    # 判断架构类型并返回相应的值
     if [ "$arch" = "aarch64" ]; then
         echo "arm64"
     elif [ "$arch" = "x86_64" ]; then
@@ -69,7 +65,6 @@ create_tmp_dir() {
     echo -e "${YELLOW}使用临时文件夹：$TMP_DIR${NC}"
 }
 
-# 定义清理函数
 cleanup_tmp_dir() {
     if [ -d "$TMP_DIR" ]; then
         echo -e "${YELLOW}清理临时文件夹：$TMP_DIR${NC}"
@@ -78,24 +73,34 @@ cleanup_tmp_dir() {
 }
 
 # 捕获退出信号
-trap 'if [ "$$" = "$BASHPID" ]; then cleanup_tmp_dir; echo -e "\n${RED}脚本已退出${NC}\n"; fi' EXIT   # 统一清理和打印
-trap 'exit 1' INT TERM                                         # Ctrl+C 或终止只退出，不重复打印
+trap 'if [ "$$" = "$BASHPID" ]; then cleanup_tmp_dir; echo -e "\n${RED}脚本已退出${NC}\n"; fi' EXIT
+trap 'exit 1' INT TERM
 
-# ====== 获取 GitHub 最新版本号（使用 API，兼容 BusyBox） ======
+# ====== 修复的获取 GitHub 最新版本号函数 ======
 get_latest_github_version() {
     repo="$1"
     latest_version=""
     wait_time=0
-    max_wait=30   # 最大等待时间 30 秒
-    interval=2    # 每次重试间隔 2 秒
+    max_wait=30
+    interval=2
 
     while [ -z "$latest_version" ] && [ $wait_time -lt $max_wait ]; do
-        # 请求 GitHub API 并抓取标准版本号
-        echo $GITHUB_TOKEN
-        latest_version=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$GITHUB_PROXY/https://api.github.com/repos/$repo/releases" \
-    | grep '"tag_name":' \
-    | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' \
-    | head -n 1)
+        # 使用更稳定的方式获取版本号
+        if [ -n "$GITHUB_TOKEN" ]; then
+            latest_version=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                "$GITHUB_PROXY/https://api.github.com/repos/$repo/releases/latest" \
+                | grep '"tag_name":' \
+                | sed -E 's/.*"tag_name": "([^"]+)".*/\1/' \
+                | head -n 1)
+        else
+            # 如果没有 token，使用公共 API
+            latest_version=$(curl -s \
+                "$GITHUB_PROXY/https://api.github.com/repos/$repo/releases/latest" \
+                | grep '"tag_name":' \
+                | sed -E 's/.*"tag_name": "([^"]+)".*/\1/' \
+                | head -n 1)
+        fi
+        
         if [ -z "$latest_version" ]; then
             echo -e "${YELLOW}暂未获取到版本号，等待 $interval 秒...${NC}"
             sleep $interval
@@ -107,51 +112,77 @@ get_latest_github_version() {
         echo -e "${RED}超过 $max_wait 秒仍未获取到版本号！${NC}"
         return 1
     fi
+    
+    # 清理版本号，确保只包含版本信息
+    latest_version=$(echo "$latest_version" | tr -d '[:space:]' | sed 's/^v//')
     echo "$latest_version"
 }
 
-
-# ====== 安装 OpenClash ======
+# ====== 修复的安装 OpenClash 函数 ======
 install_openclash() {
     create_tmp_dir
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
-latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
-if [ $? -ne 0 ]; then
-    echo "获取版本号失败，安装取消！"
-    exit 1
-fi
-echo "准备安装 OpenClash，版本：$latest_version"
+    
+    latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
+    if [ $? -ne 0 ] || [ -z "$latest_version" ]; then
+        echo -e "${RED}获取版本号失败，安装取消！${NC}"
+        return 1
+    fi
+    
+    echo -e "${GREEN}准备安装 OpenClash，版本：v$latest_version${NC}"
+    
     # 准备下载链接
     ipk_url="https://github.com/vernesong/OpenClash/releases/download/v${latest_version}/luci-app-openclash_${latest_version}_all.ipk"
     wget_url="$ipk_url"
     [ -n "$GITHUB_PROXY" ] && wget_url="${GITHUB_PROXY}${ipk_url#https://}"
 
-    # 等待并开始下载
     echo -e "${YELLOW}开始下载 OpenClash...${NC}"
-    wget -O "$TMP_DIR/luci-app-openclash.ipk" "$wget_url" || { echo -e "${RED}下载失败！${NC}"; return 1; }
+    echo -e "${YELLOW}下载链接：$wget_url${NC}"
+    
+    if wget -O "$TMP_DIR/luci-app-openclash.ipk" "$wget_url"; then
+        echo -e "${GREEN}下载成功！${NC}"
+    else
+        echo -e "${RED}下载失败！尝试直接下载...${NC}"
+        # 尝试不使用代理下载
+        if wget -O "$TMP_DIR/luci-app-openclash.ipk" "$ipk_url"; then
+            echo -e "${GREEN}直接下载成功！${NC}"
+        else
+            echo -e "${RED}所有下载方式都失败！${NC}"
+            return 1
+        fi
+    fi
 
     # 安装 OpenClash
     echo -e "${YELLOW}安装 OpenClash...${NC}"
     opkg install "$TMP_DIR/luci-app-openclash.ipk" || opkg install --force-depends "$TMP_DIR/luci-app-openclash.ipk"
-    echo -e "${GREEN}OpenClash 安装完成。${NC}"
-    architecture=$(get_architecture)
-    echo "当前系统架构：$architecture"
-    if [ $? -ne 0 ]; then
-    echo -e "${RED}无法获取架构信息，退出安装openclash内核。${NC}"
-    exit 1
-fi
-    # 下载并解压 OpenClash 内核
-    echo -e "${YELLOW}正在下载 OpenClash 内核文件...${NC}"
-    wget -O "$TMP_DIR/clash-linux-$architecture.tar.gz" "${GITHUB_PROXY}https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-$architecture.tar.gz"
-
-    # 解压并移动到目标目录
-    tar -xzvf "$TMP_DIR/clash-linux-$architecture.tar.gz" -C /etc/openclash/core/
-
-    # 重命名文件为 clash_meta
-    mv /etc/openclash/core/clash /etc/openclash/core/clash_meta
-    echo -e "${GREEN}OpenClash 内核安装完成。${NC}"
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}OpenClash 安装完成。${NC}"
+        
+        # 安装内核
+        architecture=$(get_architecture)
+        echo -e "${YELLOW}当前系统架构：$architecture${NC}"
+        
+        echo -e "${YELLOW}正在下载 OpenClash 内核文件...${NC}"
+        kernel_url="${GITHUB_PROXY}https://github.com/vernesong/OpenClash/releases/download/v${latest_version}/clash-linux-${architecture}.tar.gz"
+        
+        # 创建核心目录
+        mkdir -p /etc/openclash/core/
+        
+        if wget -O "$TMP_DIR/clash-linux-$architecture.tar.gz" "$kernel_url"; then
+            # 解压并移动内核
+            tar -xzvf "$TMP_DIR/clash-linux-$architecture.tar.gz" -C /etc/openclash/core/
+            mv /etc/openclash/core/clash /etc/openclash/core/clash_meta 2>/dev/null
+            chmod +x /etc/openclash/core/clash_meta 2>/dev/null
+            echo -e "${GREEN}OpenClash 内核安装完成。${NC}"
+        else
+            echo -e "${YELLOW}内核下载失败，您可能需要手动安装内核。${NC}"
+        fi
+    else
+        echo -e "${RED}OpenClash 安装失败！${NC}"
+        return 1
+    fi
 }
-
 
 uninstall_openclash() {
     echo -e "${YELLOW}正在卸载 OpenClash...${NC}"
@@ -170,10 +201,9 @@ install_beforeopenclash() {
 #=======卸载 openclash 必备组件====
 uninstall_beforeopenclash() {
     echo -e "${YELLOW}正在卸载 openclash 必备组件...${NC}"
-    opkg uninstall bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+    opkg remove bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
     echo -e "${GREEN}openclash 必备组件 卸载完成。${NC}"
 }
-
 
 # ====== 安装 iStore ======
 install_istore() {
@@ -188,30 +218,25 @@ install_istore() {
 
     echo -e "${YELLOW}下载并安装 iStore 所需的 4 个组件...${NC}"
     
-    # 遍历每个包，下载并安装
     for pkg in $taskd $xterm $libtaskd $appstore; do
         url="${ISTORE_URL}${pkg}"
         filename="$TMP_DIR/$(basename $pkg)"
         echo -e "${YELLOW}下载：$url${NC}"
         
-        # 下载包
-        wget -O "$filename" "$url" || { 
-            echo -e "${RED}下载 $pkg 失败！iStore 安装失败。${NC}"
-            return 1  # 下载失败，直接退出函数
-        }
-        
-        echo -e "${YELLOW}安装 $pkg...${NC}"
-        
-        # 安装包
-        opkg install "$filename" || opkg install --force-depends "$filename" || { 
-            echo -e "${RED}安装 $pkg 失败！iStore 安装失败。${NC}"
-            return 1  # 安装失败，直接退出函数
-        }
+        if wget -O "$filename" "$url"; then
+            echo -e "${YELLOW}安装 $pkg...${NC}"
+            opkg install "$filename" || opkg install --force-depends "$filename" || { 
+                echo -e "${RED}安装 $pkg 失败！${NC}"
+                return 1
+            }
+        else
+            echo -e "${RED}下载 $pkg 失败！${NC}"
+            return 1
+        fi
     done
 
     echo -e "${GREEN}iStore 安装完成。${NC}"
 }
-
 
 uninstall_istore() {
     echo -e "${YELLOW}正在卸载 iStore...${NC}"
@@ -235,7 +260,6 @@ uninstall_sftp() {
 
 show_menu() {
     while true; do
-        # ====== 主菜单 ======
         echo -e "${YELLOW}=================================================${NC}"
         echo -e "${GREEN}==========欢迎使用 Feiyang OpenWrt 管理脚本=========${NC}"
         echo -e "${YELLOW}========    脚本管理  sh /root/opt.sh   ==========${NC}"  
@@ -272,7 +296,6 @@ show_menu() {
             *) echo -e "${RED}无效选项，请重新输入。${NC}" ;;
         esac
 
-        # 执行完任务后询问是否退出
         read -p "任务已完成，是否继续操作？(任意键继续，N/n 退出脚本): " exit_choice
         if [[ "$exit_choice" == "N" || "$exit_choice" == "n" ]]; then
             echo -e "${GREEN}退出脚本${NC}"
@@ -280,9 +303,11 @@ show_menu() {
         fi
     done
 }
+
 # 判断是否第一次运行并自动保存
 if [ ! -f "$LOCAL_SCRIPT_PATH" ]; then
     get_script
 fi
+
 # 调用菜单
 show_menu
