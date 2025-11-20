@@ -4,7 +4,7 @@
 # ====== 脚本配置 ========
 REMOTE_SCRIPT_URL="https://sh.feiyang.gq/openwrt.sh"
 LOCAL_SCRIPT_PATH="/root/opt.sh"
-GITHUB_PROXY="https://ghproxy.feiyang.gq/"
+GITHUB_PROXY=""
 TMP_DIR="/tmp/install_tmp"
 # ====== 软件配置 ======
 OPENCLASH_REPO="vernesong/OpenClash"
