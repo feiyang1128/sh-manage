@@ -92,12 +92,10 @@ get_latest_github_version() {
     while [ -z "$latest_version" ] && [ $wait_time -lt $max_wait ]; do
         # 请求 GitHub API 并抓取标准版本号
         echo $GITHUB_TOKEN
-        echo "API 响应: $(curl -s -H "Authorization: token $GITHUB_TOKEN" "$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases")"
-        latest_version=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases" \
-            | grep '"tag_name":' \
-            | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' \
-            | head -n 1)
-        
+          latest_version=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$GITHUB_PROXY/https://api.github.com/repos/$repo/releases" \
+    | grep '"tag_name":' \
+    | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' \
+    | head -n 1)
         if [ -z "$latest_version" ]; then
             echo -e "${YELLOW}暂未获取到版本号，等待 $interval 秒...${NC}"
             sleep $interval
