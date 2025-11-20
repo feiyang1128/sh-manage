@@ -2,8 +2,7 @@
 
 # ====== 可配置区域 ======
 # ====== 脚本配置 ========
-REMOTE_SCRIPT_URL="https://sh.feiyang.gq/openwrt.sh"
-#GITHUB_TOKEN="${GITHUB_TOKEN}"  # 将 YOUR_PERSONAL_ACCESS_TOKEN 替换为你的 GitHub 令牌
+REMOTE_SCRIPT_URL="https://sh.feiyang.gq/openwrt.sh"GITHUB_TOKEN="${GITHUB_TOKEN}"  # 将 YOUR_PERSONAL_ACCESS_TOKEN 替换为你的 GitHub 令牌
 LOCAL_SCRIPT_PATH="/root/opt.sh"
 GITHUB_PROXY="https://gh-proxy.org/"
 TMP_DIR="/tmp/install_tmp"
