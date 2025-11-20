@@ -118,6 +118,7 @@ install_openclash() {
     create_tmp_dir
     opkg update
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
+    echo $GITHUB_TOKEN
 latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
 if [ $? -ne 0 ]; then
     echo "获取版本号失败，安装取消！"
