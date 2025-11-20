@@ -114,7 +114,6 @@ get_latest_github_version() {
 # ====== 安装 OpenClash ======
 install_openclash() {
     create_tmp_dir
-    opkg update
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
     echo $GITHUB_TOKEN
 latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
@@ -123,7 +122,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "准备安装 OpenClash，版本：$latest_version"
-latest_version=$(echo "$latest_version" | tr -d 'a-zA-Z')
     # 准备下载链接
     ipk_url="https://github.com/vernesong/OpenClash/releases/download/v${latest_version}/luci-app-openclash_${latest_version}_all.ipk"
     wget_url="$ipk_url"
