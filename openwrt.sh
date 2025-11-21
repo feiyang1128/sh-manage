@@ -70,7 +70,7 @@ get_latest_version() {
     echo -e "${YELLOW}正在获取 GitHub 项目 '$repo' 的最新版本号...${NC}" >&2
     
     # 调用 GitHub API 获取最新版本信息（添加错误处理）
-    local api_url="$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases"
+    local api_url="https://api.github.com/repos/$repo/releases"
     local response
     local latest_version
     
