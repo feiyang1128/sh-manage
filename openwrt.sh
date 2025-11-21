@@ -246,21 +246,13 @@ install_docker() {
     echo -e "${YELLOW}正在安装 Docker...${NC}"    
     # 安装 Docker 相关软件包
     opkg install dockerd luci-app-dockerman luci-i18n-dockerman-zh-cn || { echo -e "${RED}Docker 安装失败！${NC}"; return 1; }
-    /etc/init.d/docker start
-    /etc/init.d/docker enable
     echo -e "${GREEN}Docker 安装成功！${NC}"
 }
 # 卸载 Docker
 uninstall_docker() {
     echo -e "${YELLOW}正在卸载 Docker...${NC}"
-
-    # 停止 Docker 服务
-    /etc/init.d/docker stop
-    /etc/init.d/docker disable
-
     # 卸载 Docker 及相关软件包
     opkg remove dockerd luci-app-dockerman luci-i18n-dockerman-zh-cn || { echo -e "${RED}Docker 卸载失败！${NC}"; return 1; }
-
     echo -e "${GREEN}Docker 卸载完成。${NC}"
 }
 
