@@ -67,7 +67,8 @@ get_latest_version() {
     echo -e "${YELLOW}正在获取 GitHub 项目 '$repo' 的最新版本号...${NC}"
     
     # 调用 GitHub API 获取最新版本信息
-    latest_version=$(curl -s "$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases" | jq -r .tag_name)
+    latest_version=$(curl -s "$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases" | jq -r '.[0].tag_name')
+   
     
     if [ "$latest_version" != "null" ]; then
         # 如果需要添加 'v'，并且版本号不以 'v' 开头，则添加
