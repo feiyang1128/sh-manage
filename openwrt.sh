@@ -144,7 +144,7 @@ install_openclash() {
     
     # 获取最新版本（添加重试机制）
     local retry_count=0
-    local max_retries=15
+    local max_retries=50
     local latest_version=""
     
     while [ $retry_count -lt $max_retries ] && [ -z "$latest_version" ]; do
@@ -292,6 +292,21 @@ install_docker() {
     echo -e "${YELLOW}正在安装 Docker...${NC}"    
     # 安装 Docker 相关软件包
     opkg install dockerd luci-app-dockerman luci-i18n-dockerman-zh-cn || { echo -e "${RED}Docker 安装失败！${NC}"; return 1; }
+    
+    # 注释掉 bridge-nf-call 配置
+    local config_file="/etc/sysctl.d/12-br-netfilter-ip.conf"
+    if [ -f "$config_file" ]; then
+        echo -e "${YELLOW}注释掉 bridge-nf-call 配置...${NC}"
+        sed -i 's/^net.bridge.bridge-nf-call-ip6tables=1/# net.bridge.bridge-nf-call-ip6tables=1/g' "$config_file"
+        sed -i 's/^net.bridge.bridge-nf-call-iptables=1/# net.bridge.bridge-nf-call-iptables=1/g' "$config_file"
+        echo -e "${GREEN}已成功注释 bridge-nf-call 配置${NC}"
+        
+        # 重新加载配置
+        sysctl -p "$config_file" 2>/dev/null || true
+    else
+        echo -e "${YELLOW}配置文件 $config_file 不存在，跳过注释步骤${NC}"
+    fi
+    
     echo -e "${GREEN}Docker 安装成功！${NC}"
 }
 # 卸载 Docker
