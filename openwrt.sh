@@ -144,7 +144,7 @@ install_openclash() {
     
     # 获取最新版本（添加重试机制）
     local retry_count=0
-    local max_retries=3
+    local max_retries=15
     local latest_version=""
     
     while [ $retry_count -lt $max_retries ] && [ -z "$latest_version" ]; do
