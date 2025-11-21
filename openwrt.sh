@@ -59,18 +59,17 @@ get_latest_version() {
 
     # 检查 jq 是否已安装，如果没有安装，则安装
     if ! command -v jq &>/dev/null; then
-        echo -e "${YELLOW}未检测到 jq，正在安装 jq...${NC}"
-        opkg update && opkg install jq || { echo -e "${RED}jq 安装失败！${NC}"; return 1; }
-        echo -e "${GREEN}jq 安装成功！${NC}"
+        echo -e "${YELLOW}未检测到 jq，正在安装 jq...${NC}" >&2
+        opkg update && opkg install jq || { echo -e "${RED}jq 安装失败！${NC}" >&2; return 1; }
+        echo -e "${GREEN}jq 安装成功！${NC}" >&2
     fi
     
-    echo -e "${YELLOW}正在获取 GitHub 项目 '$repo' 的最新版本号...${NC}"
+    echo -e "${YELLOW}正在获取 GitHub 项目 '$repo' 的最新版本号...${NC}" >&2
     
     # 调用 GitHub API 获取最新版本信息
     latest_version=$(curl -s "$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases" | jq -r '.[0].tag_name')
-   
     
-    if [ "$latest_version" != "null" ]; then
+    if [ "$latest_version" != "null" ] && [ -n "$latest_version" ]; then
         # 如果需要添加 'v'，并且版本号不以 'v' 开头，则添加
         if [ "$add_v" == "true" ] && [[ "$latest_version" != v* ]]; then
             latest_version="v$latest_version"
@@ -78,13 +77,13 @@ get_latest_version() {
         elif [ "$add_v" == "false" ] && [[ "$latest_version" == v* ]]; then
             latest_version="${latest_version#v}"
         fi
-        echo -e "${GREEN}最新版本号：$latest_version${NC}"
+        echo -e "${GREEN}最新版本号：$latest_version${NC}" >&2
+        echo "$latest_version"  # 关键：返回处理好的版本号
     else
-        echo -e "${RED}获取最新版本失败！${NC}"
+        echo -e "${RED}获取最新版本失败！${NC}" >&2
         return 1
     fi
 }
-
 
 update_feeds() {
     echo -e "${YELLOW}正在更新软件源...${NC}"
@@ -112,8 +111,8 @@ install_openclash() {
     create_tmp_dir
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
     
-    # 获取最新版本号
-    get_latest_version "vernesong/OpenClash" "false" || return 1
+    # 获取最新版本
+    latest_version=$(get_latest_version "vernesong/OpenClash" "false" || return 1)
 
     echo -e "${GREEN}准备安装 OpenClash，版本：v$latest_version${NC}"
     
