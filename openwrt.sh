@@ -6,8 +6,7 @@ REMOTE_SCRIPT_URL="https://sh.feiyang.gq/openwrt.sh"
 LOCAL_SCRIPT_PATH="/root/opt.sh"
 GITHUB_PROXY="https://gh-proxy.org/"  # 更换更稳定的代理
 TMP_DIR="/tmp/install_tmp"
-# ====== 软件配置 ======
-OPENCLASH_REPO="vernesong/OpenClash"
+# ====== 软件配置 =====
 ISTORE_URL="https://istore.linkease.com/repo/all/store/"
 
 # ====== 颜色定义 ======
@@ -53,6 +52,38 @@ get_architecture() {
         echo "未知架构：$arch"
     fi
 }
+# 获取 GitHub 项目最新版本号
+get_latest_version() {
+    local repo=$1
+    local add_v=$2  # 第二个参数，用于控制是否加上 'v'
+
+    # 检查 jq 是否已安装，如果没有安装，则安装
+    if ! command -v jq &>/dev/null; then
+        echo -e "${YELLOW}未检测到 jq，正在安装 jq...${NC}"
+        opkg update && opkg install jq || { echo -e "${RED}jq 安装失败！${NC}"; return 1; }
+        echo -e "${GREEN}jq 安装成功！${NC}"
+    fi
+    
+    echo -e "${YELLOW}正在获取 GitHub 项目 '$repo' 的最新版本号...${NC}"
+    
+    # 调用 GitHub API 获取最新版本信息
+    latest_version=$(curl -s "$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases/latest" | jq -r .tag_name)
+    
+    if [ "$latest_version" != "null" ]; then
+        # 如果需要添加 'v'，并且版本号不以 'v' 开头，则添加
+        if [ "$add_v" == "true" ] && [[ "$latest_version" != v* ]]; then
+            latest_version="v$latest_version"
+        # 如果不需要 'v'，并且版本号以 'v' 开头，则去掉 'v'
+        elif [ "$add_v" == "false" ] && [[ "$latest_version" == v* ]]; then
+            latest_version="${latest_version#v}"
+        fi
+        echo -e "${GREEN}最新版本号：$latest_version${NC}"
+    else
+        echo -e "${RED}获取最新版本失败！${NC}"
+        return 1
+    fi
+}
+
 
 update_feeds() {
     echo -e "${YELLOW}正在更新软件源...${NC}"
@@ -79,6 +110,10 @@ trap 'exit 1' INT TER
 install_openclash() {
     create_tmp_dir
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
+    
+    # 获取最新版本号
+    get_latest_version "vernesong/OpenClash" "false" || return 1
+
     echo -e "${GREEN}准备安装 OpenClash，版本：v$latest_version${NC}"
     
     # 准备下载链接
