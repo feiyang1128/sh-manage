@@ -60,14 +60,43 @@ get_latest_version() {
     # 检查 jq 是否已安装，如果没有安装，则安装
     if ! command -v jq &>/dev/null; then
         echo -e "${YELLOW}未检测到 jq，正在安装 jq...${NC}" >&2
-        opkg update && opkg install jq || { echo -e "${RED}jq 安装失败！${NC}" >&2; return 1; }
+        opkg update && opkg install jq || { 
+            echo -e "${RED}jq 安装失败！${NC}" >&2
+            return 1
+        }
         echo -e "${GREEN}jq 安装成功！${NC}" >&2
     fi
     
     echo -e "${YELLOW}正在获取 GitHub 项目 '$repo' 的最新版本号...${NC}" >&2
     
-    # 调用 GitHub API 获取最新版本信息
-    latest_version=$(curl -s "$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases" | jq -r '.[0].tag_name')
+    # 调用 GitHub API 获取最新版本信息（添加错误处理）
+    local api_url="$GITHUB_PROXYhttps://api.github.com/repos/$repo/releases"
+    local response
+    local latest_version
+    
+    response=$(curl -s --connect-timeout 15 "$api_url")
+    
+    # 检查 curl 是否成功
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}网络请求失败！${NC}" >&2
+        return 1
+    fi
+    
+    # 检查响应是否为空
+    if [ -z "$response" ]; then
+        echo -e "${RED}API 返回空响应！${NC}" >&2
+        return 1
+    fi
+    
+    # 检查是否是错误消息
+    if echo "$response" | jq -e 'type == "object" and has("message")' >/dev/null 2>&1; then
+        local error_msg=$(echo "$response" | jq -r '.message')
+        echo -e "${RED}GitHub API 错误: $error_msg${NC}" >&2
+        return 1
+    fi
+    
+    # 提取版本号
+    latest_version=$(echo "$response" | jq -r '.[0].tag_name // "null"')
     
     if [ "$latest_version" != "null" ] && [ -n "$latest_version" ]; then
         # 如果需要添加 'v'，并且版本号不以 'v' 开头，则添加
@@ -80,7 +109,9 @@ get_latest_version() {
         echo -e "${GREEN}最新版本号：$latest_version${NC}" >&2
         echo "$latest_version"  # 关键：返回处理好的版本号
     else
-        echo -e "${RED}获取最新版本失败！${NC}" >&2
+        echo -e "${RED}获取最新版本失败！未找到有效的版本号${NC}" >&2
+        echo -e "${YELLOW}API 响应:${NC}" >&2
+        echo "$response" | head -20 >&2  # 显示前20行响应用于调试
         return 1
     fi
 }
@@ -111,8 +142,24 @@ install_openclash() {
     create_tmp_dir
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
     
-    # 获取最新版本
-    latest_version=$(get_latest_version "vernesong/OpenClash" "false" || return 1)
+    # 获取最新版本（添加重试机制）
+    local retry_count=0
+    local max_retries=3
+    local latest_version=""
+    
+    while [ $retry_count -lt $max_retries ] && [ -z "$latest_version" ]; do
+        latest_version=$(get_latest_version "vernesong/OpenClash" "false")
+        if [ $? -ne 0 ] || [ -z "$latest_version" ]; then
+            retry_count=$((retry_count + 1))
+            echo -e "${YELLOW}获取版本失败，第 $retry_count 次重试...${NC}"
+            sleep 2
+        fi
+    done
+    
+    if [ -z "$latest_version" ]; then
+        echo -e "${RED}无法获取 OpenClash 版本号，使用默认版本 v0.47.028${NC}"
+        latest_version="0.47.028"
+    fi
 
     echo -e "${GREEN}准备安装 OpenClash，版本：v$latest_version${NC}"
     
@@ -133,15 +180,14 @@ install_openclash() {
             echo -e "${GREEN}直接下载成功！${NC}"
         else
             echo -e "${RED}所有下载方式都失败！${NC}"
+            echo -e "${YELLOW}请手动下载并安装：$ipk_url${NC}"
             return 1
         fi
     fi
 
     # 安装 OpenClash
     echo -e "${YELLOW}安装 OpenClash...${NC}"
-    opkg install "$TMP_DIR/luci-app-openclash.ipk" || opkg install --force-depends "$TMP_DIR/luci-app-openclash.ipk"
-    
-    if [ $? -eq 0 ]; then
+    if opkg install "$TMP_DIR/luci-app-openclash.ipk" || opkg install --force-depends "$TMP_DIR/luci-app-openclash.ipk"; then
         echo -e "${GREEN}OpenClash 安装完成。${NC}"
         
         # 安装内核
