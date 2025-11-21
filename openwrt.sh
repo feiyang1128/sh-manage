@@ -241,6 +241,31 @@ uninstall_sftp() {
     opkg remove vsftpd openssh-sftp-server
     echo -e "${GREEN}SFTP 服务卸载完成。${NC}"
 }
+# ====== 安装 docker 服务 ======
+install_docker() {
+    echo -e "${YELLOW}正在安装 Docker...${NC}"
+
+    # 更新软件源
+    opkg update
+    
+    # 安装 Docker 相关软件包
+    opkg install docker docker-compose || { echo -e "${RED}Docker 安装失败！${NC}"; return 1; }
+
+    echo -e "${GREEN}Docker 安装成功！${NC}"
+}
+# 卸载 Docker
+uninstall_docker() {
+    echo -e "${YELLOW}正在卸载 Docker...${NC}"
+
+    # 停止 Docker 服务
+    /etc/init.d/docker stop
+    /etc/init.d/docker disable
+
+    # 卸载 Docker 及相关软件包
+    opkg remove docker docker-compose || { echo -e "${RED}Docker 卸载失败！${NC}"; return 1; }
+
+    echo -e "${GREEN}Docker 卸载完成。${NC}"
+}
 
 show_menu() {
     while true; do
@@ -257,12 +282,14 @@ show_menu() {
         echo "7. 卸载 SFTP 服务"
         echo "8. 安装 openclash 必备组件"
         echo "9. 卸载 openclash 必备组件"
-        echo "10. 更新脚本"
-        echo "11. 删除脚本"
+        echo "10. 安装 Docker"
+        echo "11. 卸载 Docker"
+        echo "12. 更新脚本"
+        echo "13. 删除脚本"
         echo "0. 退出"
         echo -e "${YELLOW}=================================================${NC}"
 
-        read -p "请输入选项 [0-9]: " choice
+        read -p "请输入选项 [0-13]: " choice
 
         case $choice in
             1) update_feeds ;;
@@ -274,8 +301,10 @@ show_menu() {
             7) uninstall_sftp ;;
             8) install_beforeopenclash ;;
             9) uninstall_beforeopenclash ;;
-            10) get_script ;;
-            11) delete_script ;;
+            10) install_docker ;;
+            11) uninstall_docker ;;
+            12) get_script ;;
+            13) delete_script ;;
             0) echo -e "${GREEN}退出脚本${NC}"; exit 0 ;;
             *) echo -e "${RED}无效选项，请重新输入。${NC}" ;;
         esac
@@ -287,6 +316,7 @@ show_menu() {
         fi
     done
 }
+
 
 # 判断是否第一次运行并自动保存
 if [ ! -f "$LOCAL_SCRIPT_PATH" ]; then
