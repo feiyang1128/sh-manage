@@ -243,13 +243,9 @@ uninstall_sftp() {
 }
 # ====== 安装 docker 服务 ======
 install_docker() {
-    echo -e "${YELLOW}正在安装 Docker...${NC}"
-
-    # 更新软件源
-    opkg update
-    
+    echo -e "${YELLOW}正在安装 Docker...${NC}"    
     # 安装 Docker 相关软件包
-    opkg install docker docker-compose || { echo -e "${RED}Docker 安装失败！${NC}"; return 1; }
+    opkg install dockerd luci-app-dockerman luci-i18n-dockerman-zh-cn || { echo -e "${RED}Docker 安装失败！${NC}"; return 1; }
 
     echo -e "${GREEN}Docker 安装成功！${NC}"
 }
@@ -262,7 +258,7 @@ uninstall_docker() {
     /etc/init.d/docker disable
 
     # 卸载 Docker 及相关软件包
-    opkg remove docker docker-compose || { echo -e "${RED}Docker 卸载失败！${NC}"; return 1; }
+    opkg remove dockerd luci-app-dockerman luci-i18n-dockerman-zh-cn || { echo -e "${RED}Docker 卸载失败！${NC}"; return 1; }
 
     echo -e "${GREEN}Docker 卸载完成。${NC}"
 }
