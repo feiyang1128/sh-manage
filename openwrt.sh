@@ -3,9 +3,8 @@
 # ====== 可配置区域 ======
 # ====== 脚本配置 =======
 REMOTE_SCRIPT_URL="https://sh.feiyang.gq/openwrt.sh"
-GITHUB_TOKEN="${GITHUB_TOKEN}"  # 从环境变量读取
 LOCAL_SCRIPT_PATH="/root/opt.sh"
-GITHUB_PROXY="https://gh-proxy.com/"  # 更换更稳定的代理
+GITHUB_PROXY="https://gh-proxy.org/"  # 更换更稳定的代理
 TMP_DIR="/tmp/install_tmp"
 # ====== 软件配置 ======
 OPENCLASH_REPO="vernesong/OpenClash"
@@ -74,61 +73,12 @@ cleanup_tmp_dir() {
 
 # 捕获退出信号
 trap 'if [ "$$" = "$BASHPID" ]; then cleanup_tmp_dir; echo -e "\n${RED}脚本已退出${NC}\n"; fi' EXIT
-trap 'exit 1' INT TERM
+trap 'exit 1' INT TER
 
-# ====== 修复的获取 GitHub 最新版本号函数 ======
-get_latest_github_version() {
-    repo="$1"
-    latest_version=""
-    wait_time=0
-    max_wait=30
-    interval=2
-
-    while [ -z "$latest_version" ] && [ $wait_time -lt $max_wait ]; do
-        # 使用更稳定的方式获取版本号
-        if [ -n "$GITHUB_TOKEN" ]; then
-            latest_version=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                "$GITHUB_PROXY/https://api.github.com/repos/$repo/releases/latest" \
-                | grep '"tag_name":' \
-                | sed -E 's/.*"tag_name": "([^"]+)".*/\1/' \
-                | head -n 1)
-        else
-            # 如果没有 token，使用公共 API
-            latest_version=$(curl -s \
-                "$GITHUB_PROXY/https://api.github.com/repos/$repo/releases/latest" \
-                | grep '"tag_name":' \
-                | sed -E 's/.*"tag_name": "([^"]+)".*/\1/' \
-                | head -n 1)
-        fi
-        
-        if [ -z "$latest_version" ]; then
-            echo -e "${YELLOW}暂未获取到版本号，等待 $interval 秒...${NC}"
-            sleep $interval
-            wait_time=$((wait_time + interval))
-        fi
-    done
-
-    if [ -z "$latest_version" ]; then
-        echo -e "${RED}超过 $max_wait 秒仍未获取到版本号！${NC}"
-        return 1
-    fi
-    
-    # 清理版本号，确保只包含版本信息
-    latest_version=$(echo "$latest_version" | tr -d '[:space:]' | sed 's/^v//')
-    echo "$latest_version"
-}
-
-# ====== 修复的安装 OpenClash 函数 ======
+# ====== 安装 OpenClash 函数 ======
 install_openclash() {
     create_tmp_dir
     echo -e "${YELLOW}正在获取 OpenClash 最新版本号...${NC}"
-    
-    latest_version=$(get_latest_github_version "$OPENCLASH_REPO")
-    if [ $? -ne 0 ] || [ -z "$latest_version" ]; then
-        echo -e "${RED}获取版本号失败，安装取消！${NC}"
-        return 1
-    fi
-    
     echo -e "${GREEN}准备安装 OpenClash，版本：v$latest_version${NC}"
     
     # 准备下载链接
@@ -164,7 +114,7 @@ install_openclash() {
         echo -e "${YELLOW}当前系统架构：$architecture${NC}"
         
         echo -e "${YELLOW}正在下载 OpenClash 内核文件...${NC}"
-        kernel_url="${GITHUB_PROXY}https://github.com/vernesong/OpenClash/releases/download/v${latest_version}/clash-linux-${architecture}.tar.gz"
+        kernel_url="${GITHUB_PROXY}https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-${architecture}.tar.gz"
         
         # 创建核心目录
         mkdir -p /etc/openclash/core/
@@ -247,7 +197,6 @@ uninstall_istore() {
 # ====== 安装 SFTP 服务 ======
 install_sftp() {
     echo -e "${YELLOW}正在安装 SFTP 服务...${NC}"
-    opkg update
     opkg install vsftpd openssh-sftp-server
     echo -e "${GREEN}SFTP 服务安装完成。${NC}"
 }
